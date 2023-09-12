@@ -35,9 +35,59 @@ users = {
     'admin': '1234'
 }
 
-
-
 @app.route('/')
 def home():
     return '<h1>Meus EndPoints</h1>'
 
+# Rota para autenticar e obter o token JWT
+@app.route('/api/Identity/get-token', methods=['GET'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+
+    # Verifica se o usuário e senha são válidos
+    if username in users and users[username] == password:
+        # Cria um token de acesso JWT
+        access_token = create_access_token(identity=username)
+        return {'access_token': access_token}, 200
+    else:
+        return {'message': 'Credenciais inválidas'}, 401
+
+# Rota protegida que requer autenticação com JWT
+@app.route('/recurso_protegido', methods=['GET'])
+@jwt_required()
+def recurso_protegido():
+    current_user = get_jwt_identity()
+    return {'message': f'Olá, {current_user}! Este é um recurso protegido.'}
+
+# Função para salvar os dados do agente no Firestore
+def save_agent_data(data):
+    try:
+        agents_ref = db.collection('agents')
+        new_agent_ref = agents_ref.add(data)
+        return new_agent_ref.id  # Retorne o ID do novo documento
+    except Exception as e:
+        return str(e)
+
+# Rota para receber os dados e salvá-los no Firestore
+@app.route('/api/Agent', methods=['POST'])
+@jwt_required()
+def post_agent_data():
+    try:
+        data = request.json  # Obtém os dados do corpo da solicitação em formato JSON
+        new_agent_id = save_agent_data(data)  # Chama a função para salvar os dados
+        return jsonify({'message': 'Dados do agente foram salvos com sucesso!', 'agent_id': new_agent_id}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# Rota para obter todos os dados do Firestore
+@app.route('/api/Agent', methods=['GET'])
+@jwt_required()
+def get_all_agent_data():
+    try:
+        agents_ref = db.collection('agents')
+        all_data = [doc.to_dict() for doc in agents_ref.stream()]
+        return jsonify(all_data), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
