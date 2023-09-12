@@ -20,6 +20,55 @@ keys_from_firebase = {
   "universe_domain": "googleapis.com"
 }
 
+pag_doc = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Documentação dos Endpoints da API</title>
+</head>
+<body>
+    <h1>Documentação dos Endpoints da API</h1>
+
+    <h2>Autenticação</h2>
+    <p>Para autenticar e obter um token JWT:</p>
+    <pre>
+        <strong>GET</strong> /api/Identity/get-token
+        Parâmetros:
+        - username (string): Seu nome de usuário
+        - password (string): Sua senha
+    </pre>
+
+    <h2>Recursos Protegidos</h2>
+    <p>Esses endpoints requerem autenticação com um token JWT válido.</p>
+
+    <h3>Acessar um Recurso Protegido</h3>
+    <pre>
+        <strong>GET</strong> /recurso_protegido
+    </pre>
+
+    <h3>Salvar Dados do Agente</h3>
+    <p>Salve os dados do agente no Firestore.</p>
+    <pre>
+        <strong>POST</strong> /api/Agent
+        Parâmetros (JSON):
+        - data (object): Dados do agente a serem salvos
+    </pre>
+
+    <h3>Obter Todos os Dados do Agente</h3>
+    <p>Recupere todos os dados do agente do Firestore.</p>
+    <pre>
+        <strong>GET</strong> /api/Agent
+    </pre>
+
+    <h2>Página Inicial</h2>
+    <p>Página inicial padrão da API.</p>
+    <pre>
+        <strong>GET</strong> /
+    </pre>
+</body>
+</html>
+"""
+
 cred = credentials.Certificate(keys_from_firebase)
 firebase_admin.initialize_app(cred)
 db = firestore.client()  # Inicializa o Firestore
@@ -37,7 +86,7 @@ users = {
 
 @app.route('/')
 def home():
-    return '<h1>Meus EndPoints</h1>'
+    return pag_doc, 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 # Rota para autenticar e obter o token JWT
 @app.route('/api/Identity/get-token', methods=['GET'])
