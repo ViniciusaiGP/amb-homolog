@@ -5,6 +5,7 @@ import json
 import os
 import firebase_admin
 from firebase_admin import credentials, firestore
+import datetime
 
 keys_from_firebase = {
   "type": "service_account",
@@ -101,7 +102,9 @@ app = Flask(__name__)
 
 # Configuração do Flask-JWT-Extended
 app.config['JWT_SECRET_KEY'] = 'secreto'  # Troque isso por uma chave secreta mais segura em um ambiente de produção
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=5)  # Define o tempo de expiração para 5 segundos
 jwt = JWTManager(app)
+
 
 # Simulação de um banco de dados de usuários
 users = {
@@ -121,11 +124,15 @@ def login():
 
     # Verifica se o usuário e senha são válidos
     if username in users and users[username] == password:
-        # Cria um token de acesso JWT
-        access_token = create_access_token(identity=username)
-        return {'access_token': access_token}, 200
+        # Define a data de expiração para 5 segundos a partir do momento atual
+        expires = datetime.timedelta(seconds=5)
+        # Cria um token de acesso JWT com tempo de expiração
+        access_token = create_access_token(identity=username, expires_delta=expires)
+        # Retorna o token de acesso com o tempo de expiração em segundos
+        return {'access_token': access_token, 'expires_in': 5}, 200
     else:
         return {'message': 'Credenciais inválidas'}, 401
+
 
 # Rota protegida que requer autenticação com JWT
 @app.route('/recurso_protegido', methods=['GET'])
