@@ -62,8 +62,11 @@ pag_doc = """
     <pre>
         <strong>GET</strong> /api/Identity/get-token
         Parâmetros:
-        - "username": "admin"
-        - "password": "1234"
+        {
+            "username": "admin"
+            "password": "1234"
+        }
+        Tempo de vida do Token: 1800 segundos.
     </pre>
 
     <h2>Recursos Protegidos</h2>
@@ -119,7 +122,7 @@ app = Flask(__name__)
 
 # Configuração do Flask-JWT-Extended
 app.config['JWT_SECRET_KEY'] = 'secreto'  # Troque isso por uma chave secreta mais segura em um ambiente de produção
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=1)  # Define o tempo de expiração para 5 segundos
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=1800)  # Define o tempo de expiração para 5 segundos
 jwt = JWTManager(app)
 
 
@@ -142,11 +145,11 @@ def login():
     # Verifica se o usuário e senha são válidos
     if username in users and users[username] == password:
         # Define a data de expiração para 5 segundos a partir do momento atual
-        expires = datetime.timedelta(seconds=5)
+        expires = datetime.timedelta(seconds=1800)
         # Cria um token de acesso JWT com tempo de expiração
         access_token = create_access_token(identity=username, expires_delta=expires)
         # Retorna o token de acesso com o tempo de expiração em segundos
-        return {'access_token': access_token, 'expires_in': 1}, 200
+        return {'access_token': access_token, 'expires_in': 1800}, 200
     else:
         return {'message': 'Credenciais inválidas'}, 401
 
