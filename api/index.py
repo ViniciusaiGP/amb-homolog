@@ -20,11 +20,35 @@ keys_from_firebase = {
   "universe_domain": "googleapis.com"
 }
 
+
 pag_doc = """
 <!DOCTYPE html>
 <html>
 <head>
     <title>Documentação dos Endpoints da API</title>
+    <style>
+        /* Estilos CSS internos */
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        h2 {
+            color: #555;
+        }
+
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        /* Adicione mais estilos conforme necessário */
+    </style>
 </head>
 <body>
     <h1>Documentação dos Endpoints da API</h1>
