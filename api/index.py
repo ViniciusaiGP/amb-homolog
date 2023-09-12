@@ -15,10 +15,7 @@ users = {
     'admin': '1234'
 }
 
-# Verifica se o arquivo JSON existe e, se não, cria uma lista vazia
-if not os.path.exists('agent_data.json'):
-    with open('agent_data.json', 'w') as file:
-        json.dump([], file)
+
 
 @app.route('/')
 def home():
