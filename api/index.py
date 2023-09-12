@@ -58,8 +58,8 @@ pag_doc = """
     <pre>
         <strong>GET</strong> /api/Identity/get-token
         Parâmetros:
-        - username (string): Seu nome de usuário
-        - password (string): Sua senha
+        - username (string): admin
+        - password (string): 1234
     </pre>
 
     <h2>Recursos Protegidos</h2>
@@ -84,10 +84,9 @@ pag_doc = """
         <strong>GET</strong> /api/Agent
     </pre>
 
-    <h2>Página Inicial</h2>
-    <p>Página inicial padrão da API.</p>
+    <h2>Link para ligar com os EndPoints</h2>
     <pre>
-        <strong>GET</strong> /
+        <strong>https://amb-homolog.vercel.app/</strong>
     </pre>
 </body>
 </html>
