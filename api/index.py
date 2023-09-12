@@ -40,6 +40,10 @@ pag_doc = """
             color: #555;
         }
 
+        h5 {
+            color: #555;
+        }
+
         pre {
             background-color: #f5f5f5;
             padding: 10px;
@@ -58,28 +62,43 @@ pag_doc = """
     <pre>
         <strong>GET</strong> /api/Identity/get-token
         Parâmetros:
-        - username (string): admin
-        - password (string): 1234
+        - "username": "admin"
+        - "password": "1234"
     </pre>
 
     <h2>Recursos Protegidos</h2>
     <p>Esses endpoints requerem autenticação com um token JWT válido.</p>
 
     <h3>Acessar um Recurso Protegido</h3>
+    <h5>Necessário o uso do token do login</h5>
     <pre>
         <strong>GET</strong> /recurso_protegido
+        
     </pre>
 
     <h3>Salvar Dados do Agente</h3>
     <p>Salve os dados do agente no Firestore.</p>
+    <h5>Necessário o uso do token do login</h5>
     <pre>
         <strong>POST</strong> /api/Agent
-        Parâmetros (JSON):
         - data (object): Dados do agente a serem salvos
+        Parâmetros (JSON):
+        {
+            "external_reference": "string",
+            "status": 0,
+            "name": "string",
+            "birth_date": "2023-09-11T19:49:15.868Z",
+            "gender": 1,
+            "position_external_id": "string",
+            "shift_name": "string",
+            "sector_external_id": "string",
+            "external_id": "string"
+        }
     </pre>
 
     <h3>Obter Todos os Dados do Agente</h3>
     <p>Recupere todos os dados do agente do Firestore.</p>
+    <h5>Necessário o uso do token do login</h5>
     <pre>
         <strong>GET</strong> /api/Agent
     </pre>
