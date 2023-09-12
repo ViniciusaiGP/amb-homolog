@@ -21,7 +21,6 @@ keys_from_firebase = {
   "universe_domain": "googleapis.com"
 }
 
-
 pag_doc = """
 <!DOCTYPE html>
 <html>
@@ -102,7 +101,7 @@ app = Flask(__name__)
 
 # Configuração do Flask-JWT-Extended
 app.config['JWT_SECRET_KEY'] = 'secreto'  # Troque isso por uma chave secreta mais segura em um ambiente de produção
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=5)  # Define o tempo de expiração para 5 segundos
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=1)  # Define o tempo de expiração para 5 segundos
 jwt = JWTManager(app)
 
 
@@ -129,7 +128,7 @@ def login():
         # Cria um token de acesso JWT com tempo de expiração
         access_token = create_access_token(identity=username, expires_delta=expires)
         # Retorna o token de acesso com o tempo de expiração em segundos
-        return {'access_token': access_token, 'expires_in': 5}, 200
+        return {'access_token': access_token, 'expires_in': 1}, 200
     else:
         return {'message': 'Credenciais inválidas'}, 401
 
