@@ -1,11 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_jwt_extended import *
-from flask_cors import CORS
-import json
-import os
-import firebase_admin
-from firebase_admin import credentials, firestore
 import datetime
+from firebase_admin import credentials, initialize_app
+from firebase_admin import db as firebase_db 
 
 keys_from_firebase = {
   "type": "service_account",
@@ -21,102 +18,12 @@ keys_from_firebase = {
   "universe_domain": "googleapis.com"
 }
 
-pag_doc = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Documentação dos Endpoints da API</title>
-    <style>
-        /* Estilos CSS internos */
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        h2 {
-            color: #555;
-        }
-
-        h5 {
-            color: #555;
-        }
-
-        pre {
-            background-color: #f5f5f5;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        /* Adicione mais estilos conforme necessário */
-    </style>
-</head>
-<body>
-    <h1>Documentação dos Endpoints da API</h1>
-
-    <h2>Autenticação</h2>
-    <p>Para autenticar e obter um token JWT:</p>
-    <pre>
-        <strong>GET</strong> /api/Identity/get-token
-        Parâmetros:
-        {
-            "username": "admin"
-            "password": "1234"
-        }
-        Tempo de vida do Token: 1800 segundos.
-    </pre>
-
-    <h2>Recursos Protegidos</h2>
-    <p>Esses endpoints requerem autenticação com um token JWT válido.</p>
-
-    <h3>Acessar um Recurso Protegido</h3>
-    <h5>Necessário o uso do token do login</h5>
-    <pre>
-        <strong>GET</strong> /recurso_protegido
-        
-    </pre>
-
-    <h3>Salvar Dados do Agente</h3>
-    <p>Salve os dados do agente no Firestore.</p>
-    <h5>Necessário o uso do token do login</h5>
-    <pre>
-        <strong>POST</strong> /api/Agent
-        - data (object): Dados do agente a serem salvos
-        Parâmetros (JSON):
-        {
-            "external_reference": "string",
-            "status": 0,
-            "name": "string",
-            "birth_date": "2023-09-11T19:49:15.868Z",
-            "gender": 1,
-            "position_external_id": "string",
-            "shift_name": "string",
-            "sector_external_id": "string",
-            "external_id": "string"
-        }
-    </pre>
-
-    <h3>Obter Todos os Dados do Agente</h3>
-    <p>Recupere todos os dados do agente do Firestore.</p>
-    <h5>Necessário o uso do token do login</h5>
-    <pre>
-        <strong>GET</strong> /api/Agent
-    </pre>
-
-    <h2>Link para ligar com os EndPoints</h2>
-    <pre>
-        <strong>https://amb-homolog.vercel.app/</strong>
-    </pre>
-</body>
-</html>
-"""
-
+# Configurações do Firebase Realtime Database
 cred = credentials.Certificate(keys_from_firebase)
-firebase_admin.initialize_app(cred)
-db = firestore.client()  # Inicializa o Firestore
+firebase = initialize_app(cred, {
+    "databaseURL": "https://amb-homolog-jwt-default-rtdb.firebaseio.com/"
+})
+db = firebase_db.reference()  # Use 'reference()' para acessar o Realtime Database
 
 app = Flask(__name__)
 
@@ -125,69 +32,98 @@ app.config['JWT_SECRET_KEY'] = 'secreto'  # Troque isso por uma chave secreta ma
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=1800)  # Define o tempo de expiração para 5 segundos
 jwt = JWTManager(app)
 
+# Lista de usuários
+users = [
+    {
+        'login': 'gtfoods_mga',
+        'senha': 'gtfoodsmga2023',
+        'codfil': '1'
+    },
+    {
+        'login': 'gtfoods_prvi',
+        'senha': 'gtfoodsprvi2023',
+        'codfil': '29'
+    },
+    {
+        'login': 'gtfoods_pnorte',
+        'senha': 'gtfoodspnorte2023',
+        'codfil': '37'
+    }
+]
 
-# Simulação de um banco de dados de usuários
-users = {
-    'admin': '1234'
-}
-
-@app.route('/')
-def home():
-    return pag_doc, 200, {'Content-Type': 'text/html; charset=utf-8'}
-
-# Rota para autenticar e obter o token JWT
+# Rota para obter um token com base nos dados do usuário
 @app.route('/api/Identity/get-token', methods=['GET'])
-def login():
-    data = request.get_json()
-    username = data.get('username')
-    password = data.get('password')
+def get_token():
+    data = request.json
 
-    # Verifica se o usuário e senha são válidos
-    if username in users and users[username] == password:
-        # Define a data de expiração para 5 segundos a partir do momento atual
-        expires = datetime.timedelta(seconds=1800)
-        # Cria um token de acesso JWT com tempo de expiração
-        access_token = create_access_token(identity=username, expires_delta=expires)
-        # Retorna o token de acesso com o tempo de expiração em segundos
-        return {'access_token': access_token, 'expires_in': 1800}, 200
-    else:
-        return {'message': 'Credenciais inválidas'}, 401
+    login = data.get('login')
+    senha = data.get('senha')
 
+    # Verifica se o usuário e senha correspondem a um usuário na lista
+    for user in users:
+        if user['login'] == login and user['senha'] == senha:
+            # Define a data de expiração para 30 minutos (1800 segundos) a partir do momento atual
+            expires = datetime.timedelta(seconds=1800)
+            # Cria um token de acesso JWT com tempo de expiração
+            access_token = create_access_token(identity=login, expires_delta=expires)
+            # Retorna o token de acesso com o tempo de expiração em segundos
+            return {'access_token': access_token, 'expires_in': 1800}, 200
 
-# Rota protegida que requer autenticação com JWT
-@app.route('/recurso_protegido', methods=['GET'])
+    # Se as credenciais não corresponderem, retorna uma resposta de erro
+    return {'message': 'Credenciais inválidas'}, 401
+
+# Rota protegida por autenticação com token
+@app.route('/api/secure', methods=['GET'])
 @jwt_required()
-def recurso_protegido():
+def secure_endpoint():
     current_user = get_jwt_identity()
     return {'message': f'Olá, {current_user}! Este é um recurso protegido.'}
 
-# Função para salvar os dados do agente no Firestore
-def save_agent_data(data):
-    try:
-        agents_ref = db.collection('agents')
-        new_agent_ref = agents_ref.add(data)
-        return new_agent_ref.id  # Retorne o ID do novo documento
-    except Exception as e:
-        return str(e)
-
-# Rota para receber os dados e salvá-los no Firestore
 @app.route('/api/Agent', methods=['POST'])
 @jwt_required()
 def post_agent_data():
     try:
-        data = request.json  # Obtém os dados do corpo da solicitação em formato JSON
-        new_agent_id = save_agent_data(data)  # Chama a função para salvar os dados
-        return jsonify({'message': 'Dados do agente foram salvos com sucesso!', 'agent_id': new_agent_id}), 201
+        data = request.json  # Obtenha os dados do corpo da solicitação JSON
+        current_user_id = get_jwt_identity()  # Obtenha o ID do usuário atualmente autenticado
+
+        # Recupere a lista existente de agentes ou crie uma lista vazia se não existir
+        user_ref = db.child('users').child(current_user_id)
+        agents_list = user_ref.child('agents').get()
+
+        if agents_list is None:
+            agents_list = []  # Inicialize uma lista vazia
+
+        # Crie um dicionário apenas com os dados do agente
+        agent_data = {
+            'birth_date': data.get('birth_date', ''),
+            'external_id': data.get('external_id', ''),
+            'external_reference': data.get('external_reference', ''),
+            'gender': data.get('gender', ''),
+            'name': data.get('name', ''),
+            'position_external_id': data.get('position_external_id', ''),
+            'sector_external_id': data.get('sector_external_id', ''),
+            'shift_name': data.get('shift_name', ''),
+            'status': data.get('status', ''),
+            'user_id': current_user_id
+        }
+
+        # Adicione o novo agente à lista existente
+        agents_list.append(agent_data)
+
+        # Atualize a lista de agentes no Firebase
+        user_ref.child('agents').set(agents_list)
+
+        return jsonify({'message': 'Os dados do agente foram salvos com sucesso!'}), 201
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Rota para obter todos os dados do Firestore
+# Rota para obter todos os dados do Firebase Realtime Database
 @app.route('/api/Agent', methods=['GET'])
 @jwt_required()
 def get_all_agent_data():
     try:
-        agents_ref = db.collection('agents')
-        all_data = [doc.to_dict() for doc in agents_ref.stream()]
+        agents_data = db.child('agents').get()  # Obter todos os dados da coleção 'agents'
+        all_data = agents_data.val()
         return jsonify(all_data), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
