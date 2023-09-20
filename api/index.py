@@ -29,7 +29,7 @@ app = Flask(__name__)
 
 # Configuração do Flask-JWT-Extended
 app.config['JWT_SECRET_KEY'] = 'secreto'  # Troque isso por uma chave secreta mais segura em um ambiente de produção
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=1800)  # Define o tempo de expiração para 5 segundos
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(seconds=1)  # Define o tempo de expiração para 5 segundos
 jwt = JWTManager(app)
 
 # Lista de usuários
@@ -63,11 +63,11 @@ def get_token():
     for user in users:
         if user['login'] == login and user['senha'] == senha:
             # Define a data de expiração para 30 minutos (1800 segundos) a partir do momento atual
-            expires = datetime.timedelta(seconds=1800)
+            expires = datetime.timedelta(seconds=1)
             # Cria um token de acesso JWT com tempo de expiração
             access_token = create_access_token(identity=login, expires_delta=expires)
             # Retorna o token de acesso com o tempo de expiração em segundos
-            return {'access_token': access_token, 'expires_in': 1800}, 200
+            return {'access_token': access_token, 'expires_in': 1}, 200
 
     # Se as credenciais não corresponderem, retorna uma resposta de erro
     return {'message': 'Credenciais inválidas'}, 401
